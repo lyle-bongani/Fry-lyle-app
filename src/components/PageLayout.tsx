@@ -7,16 +7,25 @@ interface PageLayoutProps {
     title?: string;
     showBackButton?: boolean;
     className?: string;
+    fullWidth?: boolean;
 }
 
-export default function PageLayout({ children, title, showBackButton, className = '' }: PageLayoutProps) {
+export default function PageLayout({
+    children,
+    title,
+    showBackButton,
+    className = '',
+    fullWidth = false
+}: PageLayoutProps) {
     const navigate = useNavigate();
+
+    const containerClass = fullWidth ? 'w-full' : 'container mx-auto';
 
     return (
         <div className={`min-h-screen bg-gray-50 pt-16 ${className}`}>
             {(title || showBackButton) && (
                 <div className="sticky top-16 bg-white border-b border-gray-200 z-30">
-                    <div className="container mx-auto px-4">
+                    <div className={`${containerClass} px-4`}>
                         <div className="flex items-center h-14">
                             {showBackButton && (
                                 <button
@@ -31,7 +40,7 @@ export default function PageLayout({ children, title, showBackButton, className 
                     </div>
                 </div>
             )}
-            <div className="container mx-auto px-4 py-6">
+            <div className={`${containerClass} px-4 py-6`}>
                 {children}
             </div>
         </div>

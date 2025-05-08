@@ -72,10 +72,10 @@ export default function ProfilePage() {
   ];
 
   return (
-    <PageLayout className="bg-gray-50">
+    <PageLayout className="bg-white">
       <div className="container mx-auto px-4 py-6">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <div className="border-b border-gray-100 p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-br from-orange-100 to-orange-50 rounded-full flex items-center justify-center">
@@ -105,8 +105,8 @@ export default function ProfilePage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-xl shadow-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 border-b border-gray-100 pb-6">
+          <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Package className="w-5 h-5 text-orange-500" />
               <span className="text-xs text-gray-500">This Month</span>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
             <div className="text-2xl font-bold text-gray-900">12</div>
             <div className="text-sm text-gray-600">Orders</div>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
+          <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Heart className="w-5 h-5 text-red-500" />
               <span className="text-xs text-gray-500">Total</span>
@@ -122,7 +122,7 @@ export default function ProfilePage() {
             <div className="text-2xl font-bold text-gray-900">5</div>
             <div className="text-sm text-gray-600">Favorites</div>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
+          <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <MapPin className="w-5 h-5 text-green-500" />
               <span className="text-xs text-gray-500">Saved</span>
@@ -130,7 +130,7 @@ export default function ProfilePage() {
             <div className="text-2xl font-bold text-gray-900">3</div>
             <div className="text-sm text-gray-600">Addresses</div>
           </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm">
+          <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <CreditCard className="w-5 h-5 text-blue-500" />
               <span className="text-xs text-gray-500">Active</span>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
             <Link
               key={item.title}
               to={item.link}
-              className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all flex items-center gap-4"
+              className="border-b border-gray-100 p-4 hover:bg-gray-50 transition-all flex items-center gap-4"
             >
               <div className={`p-3 rounded-lg ${item.color}`}>
                 {item.icon}

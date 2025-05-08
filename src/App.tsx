@@ -134,16 +134,6 @@ function AppContent() {
     return result;
   }, [restaurants, filters, sortBy]);
 
-  // Move useActiveRoute inside AppContent
-  function useActiveRoute(path: string) {
-    const isActive = location.pathname === path;
-    return {
-      to: path,
-      className: `flex flex-col items-center p-2 transition-colors relative group ${isActive ? 'text-orange-500' : 'text-gray-600 hover:text-orange-400'
-        }`
-    };
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -379,34 +369,41 @@ function AppContent() {
 
       {/* Footer - Mobile Navigation */}
       <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-        <div className="grid grid-cols-4 gap-1 p-1">
-          <Link {...useActiveRoute('/')}>
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white rounded-full p-3 shadow-lg transition-transform group-hover:scale-110 opacity-0 group-hover:opacity-100">
-              <Home className="w-5 h-5" />
-            </div>
-            <Home className="w-6 h-6" />
-            <span className="text-xs font-medium">Home</span>
+        <div className="flex justify-around px-2 py-2">
+          <Link
+            to="/"
+            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/' ? 'text-orange-500' : 'text-gray-600'}`}
+          >
+            <Home className={`w-6 h-6 ${location.pathname === '/' ? 'fill-orange-500' : ''}`} />
+            <span className="text-xs mt-1 font-medium">Home</span>
+            {location.pathname === '/' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
           </Link>
-          <Link {...useActiveRoute('/favorites')}>
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white rounded-full p-3 shadow-lg transition-transform group-hover:scale-110 opacity-0 group-hover:opacity-100">
-              <Heart className="w-5 h-5" />
-            </div>
-            <Heart className="w-6 h-6" />
-            <span className="text-xs font-medium">Favorites</span>
+
+          <Link
+            to="/favorites"
+            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/favorites' ? 'text-orange-500' : 'text-gray-600'}`}
+          >
+            <Heart className={`w-6 h-6 ${location.pathname === '/favorites' ? 'fill-orange-500' : ''}`} />
+            <span className="text-xs mt-1 font-medium">Favorites</span>
+            {location.pathname === '/favorites' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
           </Link>
-          <Link {...useActiveRoute('/orders')}>
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white rounded-full p-3 shadow-lg transition-transform group-hover:scale-110 opacity-0 group-hover:opacity-100">
-              <Clock className="w-5 h-5" />
-            </div>
-            <Clock className="w-6 h-6" />
-            <span className="text-xs font-medium">Orders</span>
+
+          <Link
+            to="/orders"
+            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/orders' ? 'text-orange-500' : 'text-gray-600'}`}
+          >
+            <Package className={`w-6 h-6 ${location.pathname === '/orders' ? 'fill-orange-500' : ''}`} />
+            <span className="text-xs mt-1 font-medium">Orders</span>
+            {location.pathname === '/orders' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
           </Link>
-          <Link {...useActiveRoute('/profile')}>
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white rounded-full p-3 shadow-lg transition-transform group-hover:scale-110 opacity-0 group-hover:opacity-100">
-              <UserCircle className="w-5 h-5" />
-            </div>
-            <UserCircle className="w-6 h-6" />
-            <span className="text-xs font-medium">Profile</span>
+
+          <Link
+            to="/profile"
+            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/profile' ? 'text-orange-500' : 'text-gray-600'}`}
+          >
+            <UserCircle className={`w-6 h-6 ${location.pathname === '/profile' ? 'fill-orange-500' : ''}`} />
+            <span className="text-xs mt-1 font-medium">Profile</span>
+            {location.pathname === '/profile' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
           </Link>
         </div>
       </footer>

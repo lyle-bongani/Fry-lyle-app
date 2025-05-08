@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Clock, Bike, Heart, ChevronLeft, MapPin, Phone, Package, DollarSign, Utensils, Coffee, Search, Plus } from 'lucide-react';
+import { Star, Clock, Bike, Heart, ChevronLeft, MapPin, Phone, Package, DollarSign, Utensils, Coffee, Search, Plus, ShoppingCart, Award, Flame } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { restaurants } from '../data/restaurants';
@@ -13,6 +13,8 @@ const RestaurantDetail: React.FC = () => {
     const { addItem } = useCart();
     const { showNotification } = useNotification();
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('Featured');
+    const [favoriteDishes, setFavoriteDishes] = useState<string[]>([]);
 
     // Find the restaurant from the restaurants array
     const restaurant = restaurants.find((r: Restaurant) =>
@@ -35,10 +37,64 @@ const RestaurantDetail: React.FC = () => {
         );
     }
 
-    const items: MenuItem[] = menuItems[id || ''] || [];
+    const allItems: MenuItem[] = menuItems[id || ''] || [];
+
+    // Set some items as popular/featured if not already set
+    const items = allItems.map(item => {
+        if (!item.hasOwnProperty('popular') && Math.random() > 0.7) {
+            return { ...item, popular: true };
+        }
+        return item;
+    });
+
+    const filteredItems = searchTerm
+        ? items.filter(item =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        : selectedCategory === 'Featured'
+            ? items.filter(item => item.popular)
+            : selectedCategory === 'All'
+                ? items
+                : items.filter(item => item.category === selectedCategory);
+
+    // Get unique categories without using Set spread operator
+    const allCategories: string[] = items
+        .map(item => item.category || 'Other')
+        .filter((category, index, self) => self.indexOf(category) === index);
+
+    const categories = ['Featured', 'All', ...allCategories];
+
+    const toggleFavorite = (restaurant: Restaurant) => {
+        // In a real app, this would update some global state/backend
+        showNotification(`${restaurant.isFavorite ? 'Removed from' : 'Added to'} favorites`, 'success');
+    };
+
+    const toggleFavoriteDish = (itemId: string) => {
+        setFavoriteDishes(prevFavorites => {
+            if (prevFavorites.includes(itemId)) {
+                showNotification('Removed from favorites', 'success');
+                return prevFavorites.filter(id => id !== itemId);
+            } else {
+                showNotification('Added to favorites', 'success');
+                return [...prevFavorites, itemId];
+            }
+        });
+    };
+
+    const handleAddToCart = (item: MenuItem) => {
+        addItem({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: 1,
+            image: item.image,
+            restaurant: restaurant.name
+        });
+        showNotification('Item added to cart!', 'success');
+    };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             {/* Header Image */}
             <div className="relative h-64 md:h-96">
                 <button
@@ -78,10 +134,70 @@ const RestaurantDetail: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <button className="p-2 hover:bg-red-50 rounded-full transition-colors">
+                        <button
+                            onClick={() => toggleFavorite(restaurant)}
+                            className="p-2 hover:bg-red-50 rounded-full transition-colors"
+                        >
                             <Heart className={`w-6 h-6 ${restaurant.isFavorite ? 'fill-red-500' : ''} text-red-500`} />
                         </button>
                     </div>
+
+                    {/* Featured Dishes Section */}
+                    {items.filter(item => item.popular).length > 0 && (
+                        <div className="mb-10">
+                            <div className="flex items-center mb-4">
+                                <Award className="w-5 h-5 text-orange-500 mr-2" />
+                                <h2 className="text-xl font-bold text-gray-900">Featured Dishes</h2>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {items.filter(item => item.popular).slice(0, 3).map((item) => (
+                                    <div key={item.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
+                                        <div className="relative">
+                                            <img
+                                                src={item.image}
+                                                alt={item.name}
+                                                className="w-full h-48 object-cover"
+                                            />
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleFavoriteDish(item.id);
+                                                    }}
+                                                    className="p-1.5 bg-white rounded-full shadow"
+                                                >
+                                                    <Heart className={`w-5 h-5 ${favoriteDishes.includes(item.id) ? 'fill-red-500' : ''} text-red-500`} />
+                                                </button>
+                                            </div>
+                                            <div className="absolute top-2 left-2">
+                                                <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                                                    <Flame className="w-3 h-3 mr-1" />
+                                                    Featured
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-bold text-gray-900">{item.name}</h3>
+                                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.description}</p>
+                                            <div className="flex justify-between items-center mt-4">
+                                                <span className="font-bold text-lg">${item.price.toFixed(2)}</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAddToCart(item);
+                                                    }}
+                                                    className="bg-orange-500 text-white py-1.5 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center"
+                                                >
+                                                    <ShoppingCart className="w-4 h-4 mr-1" />
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Restaurant Features */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -109,7 +225,7 @@ const RestaurantDetail: React.FC = () => {
 
                     {/* Contact & Hours */}
                     <div className="grid md:grid-cols-2 gap-6 mb-8">
-                        <div className="bg-white p-6 rounded-xl shadow-sm">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center text-gray-600">
@@ -122,7 +238,7 @@ const RestaurantDetail: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-white p-6 rounded-xl shadow-sm">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 className="text-lg font-semibold mb-4">Opening Hours</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center text-gray-600">
@@ -140,10 +256,11 @@ const RestaurantDetail: React.FC = () => {
                     {/* Menu Categories */}
                     <div className="mb-6 overflow-x-auto">
                         <div className="flex gap-2 pb-2">
-                            {['Popular', 'Main Course', 'Appetizers', 'Desserts', 'Drinks'].map((category) => (
+                            {categories.map((category) => (
                                 <button
                                     key={category}
-                                    className="px-4 py-2 rounded-full bg-gray-100 hover:bg-orange-500 hover:text-white transition-colors whitespace-nowrap"
+                                    onClick={() => setSelectedCategory(category)}
+                                    className={`px-4 py-2 rounded-full ${selectedCategory === category ? 'bg-orange-500 text-white' : 'bg-gray-100 hover:bg-orange-100 text-gray-700'} transition-colors whitespace-nowrap`}
                                 >
                                     {category}
                                 </button>
@@ -165,15 +282,55 @@ const RestaurantDetail: React.FC = () => {
 
                     {/* Menu Items */}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
-                        {items.map((item: MenuItem) => (
-                            <div key={item.id} className="bg-white rounded-lg shadow-md p-4">
-                                <img src={item.image} alt={item.name} className="w-full h-32 object-cover rounded-t-lg" />
-                                <h2 className="text-lg font-bold mt-2">{item.name}</h2>
-                                <p className="text-gray-600">{item.description}</p>
-                                <p className="text-gray-900 font-bold">${item.price.toFixed(2)}</p>
+                        {filteredItems.map((item) => (
+                            <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all">
+                                <div className="relative">
+                                    <img
+                                        src={item.image}
+                                        alt={item.name}
+                                        className="w-full h-40 object-cover"
+                                    />
+                                    {item.popular && (
+                                        <div className="absolute top-2 left-2">
+                                            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                                                <Flame className="w-3 h-3 mr-1" />
+                                                Popular
+                                            </span>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavoriteDish(item.id);
+                                        }}
+                                        className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow hover:bg-gray-50 transition-colors"
+                                    >
+                                        <Heart className={`w-5 h-5 ${favoriteDishes.includes(item.id) ? 'fill-red-500' : ''} text-red-500`} />
+                                    </button>
+                                </div>
+                                <div className="p-4">
+                                    <h3 className="text-lg font-bold">{item.name}</h3>
+                                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">{item.description}</p>
+                                    <div className="flex justify-between items-center mt-4">
+                                        <span className="text-gray-900 font-bold">${item.price.toFixed(2)}</span>
+                                        <button
+                                            onClick={() => handleAddToCart(item)}
+                                            className="bg-orange-500 text-white py-1.5 px-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center"
+                                        >
+                                            <ShoppingCart className="w-4 h-4 mr-1" />
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
+
+                    {filteredItems.length === 0 && (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500">No items found. Try adjusting your search or category.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
