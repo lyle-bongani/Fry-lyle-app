@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read their own data
+    match /clients/{userId} {
+      // Allow read access if the user ID matches the authenticated user
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow create access for new user registrations
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow update access only to the user's own document
+      allow update: if request.auth != null && request.auth.uid == userId;
+      
+      // Prevent deletion of user data (only allow via admin functions)
+      allow delete: if false;
+    }
+    
+    // Additional collection rules can be added here
+    
+    // Example: Restaurant collection (if you add one later)
+    match /restaurants/{restaurantId} {
+      // Allow all users to read restaurant data
+      allow read: if true;
+      
+      // Restrict write operations to admin
+      allow write: if false;
+    }
+    
+    // For favorites, store them in a subcollection of clients
+    match /clients/{userId}/favorites/{favoriteId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // For orders, store them in a subcollection of clients
+    match /clients/{userId}/orders/{orderId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+} 

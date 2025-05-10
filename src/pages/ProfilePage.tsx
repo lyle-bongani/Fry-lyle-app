@@ -1,7 +1,10 @@
-import React from 'react';
-import { UserCircle, MapPin, Clock, CreditCard, Settings, ChevronRight, Heart, Package, Bell, Shield, HelpCircle, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { UserCircle, MapPin, Clock, CreditCard, Settings, ChevronRight, Heart, Package, Bell, Shield, HelpCircle, LogOut, Pencil } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { format } from 'date-fns';
+import EditProfileForm from '../components/EditProfileForm';
 
 interface MenuItem {
   icon: React.ReactElement;
@@ -12,6 +15,50 @@ interface MenuItem {
 }
 
 export default function ProfilePage() {
+  const { currentUser, userData, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showEditProfile, setShowEditProfile] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/welcome');
+    } catch (error) {
+      console.error('Failed to log out', error);
+    }
+  };
+
+  // Format the registration date if available
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return 'Recently';
+
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return format(date, 'MMMM yyyy');
+    } catch (error) {
+      console.error('Error formatting date', error);
+      return 'Recently';
+    }
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (userData?.fullName) {
+      const names = userData.fullName.split(' ');
+      if (names.length >= 2) {
+        return `${names[0][0]}${names[1][0]}`.toUpperCase();
+      } else if (names.length === 1) {
+        return names[0][0].toUpperCase();
+      }
+    }
+
+    if (currentUser?.email) {
+      return currentUser.email[0].toUpperCase();
+    }
+
+    return 'U';
+  };
+
   const menuItems: MenuItem[] = [
     {
       icon: <Heart className="w-6 h-6" />,
@@ -71,33 +118,74 @@ export default function ProfilePage() {
     }
   ];
 
+  // Calculate stats
+  const orderCount = userData?.orders?.length || 0;
+  const favoritesCount = userData?.favorites?.length || 0;
+  const addressesCount = userData?.addresses?.length || 0;
+  const paymentMethodsCount = 0; // Placeholder, add real implementation when available
+
   return (
     <PageLayout className="bg-white">
+      {showEditProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <EditProfileForm
+            onClose={() => setShowEditProfile(false)}
+            onSuccess={() => setShowEditProfile(false)}
+          />
+        </div>
+      )}
+
       <div className="container mx-auto px-4 py-6">
         {/* Profile Header */}
         <div className="border-b border-gray-100 p-6 mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative">
-              <div className="w-32 h-32 bg-gradient-to-br from-orange-100 to-orange-50 rounded-full flex items-center justify-center">
-                <UserCircle className="w-20 h-20 text-orange-500" />
-              </div>
+              {userData?.profileImage ? (
+                <img
+                  src={userData.profileImage}
+                  alt={userData.fullName || 'Profile'}
+                  className="w-32 h-32 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-32 h-32 bg-gradient-to-br from-orange-100 to-orange-50 rounded-full flex items-center justify-center">
+                  {userData?.fullName ? (
+                    <span className="text-3xl font-bold text-orange-500">{getUserInitials()}</span>
+                  ) : (
+                    <UserCircle className="w-20 h-20 text-orange-500" />
+                  )}
+                </div>
+              )}
               <button
                 className="absolute bottom-0 right-0 bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors shadow-lg"
                 aria-label="Edit profile"
+                onClick={() => setShowEditProfile(true)}
               >
-                <Settings className="w-5 h-5" />
+                <Pencil className="w-5 h-5" />
               </button>
             </div>
             <div className="text-center sm:text-left flex-1">
-              <h2 className="text-2xl font-bold text-gray-900">John Doe</h2>
-              <p className="text-gray-600">john.doe@example.com</p>
-              <p className="text-gray-500 text-sm mt-1">Member since March 2024</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {userData?.fullName || 'Welcome'}
+              </h2>
+              <p className="text-gray-600">{currentUser?.email}</p>
+              <p className="text-gray-500 text-sm mt-1">
+                Member since {formatDate(userData?.createdAt)}
+              </p>
+              {userData?.phone && (
+                <p className="text-gray-500 text-sm">Phone: {userData.phone}</p>
+              )}
               <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-2">
-                <button className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                <button
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  onClick={() => setShowEditProfile(true)}
+                >
                   Edit Profile
                 </button>
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                  View Activity
+                <button
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() => navigate('/settings')}
+                >
+                  Settings
                 </button>
               </div>
             </div>
@@ -109,9 +197,9 @@ export default function ProfilePage() {
           <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <Package className="w-5 h-5 text-orange-500" />
-              <span className="text-xs text-gray-500">This Month</span>
+              <span className="text-xs text-gray-500">Total</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">12</div>
+            <div className="text-2xl font-bold text-gray-900">{orderCount}</div>
             <div className="text-sm text-gray-600">Orders</div>
           </div>
           <div className="p-4">
@@ -119,7 +207,7 @@ export default function ProfilePage() {
               <Heart className="w-5 h-5 text-red-500" />
               <span className="text-xs text-gray-500">Total</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">5</div>
+            <div className="text-2xl font-bold text-gray-900">{favoritesCount}</div>
             <div className="text-sm text-gray-600">Favorites</div>
           </div>
           <div className="p-4">
@@ -127,7 +215,7 @@ export default function ProfilePage() {
               <MapPin className="w-5 h-5 text-green-500" />
               <span className="text-xs text-gray-500">Saved</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">3</div>
+            <div className="text-2xl font-bold text-gray-900">{addressesCount}</div>
             <div className="text-sm text-gray-600">Addresses</div>
           </div>
           <div className="p-4">
@@ -135,7 +223,7 @@ export default function ProfilePage() {
               <CreditCard className="w-5 h-5 text-blue-500" />
               <span className="text-xs text-gray-500">Active</span>
             </div>
-            <div className="text-2xl font-bold text-gray-900">2</div>
+            <div className="text-2xl font-bold text-gray-900">{paymentMethodsCount}</div>
             <div className="text-sm text-gray-600">Cards</div>
           </div>
         </div>
@@ -162,7 +250,10 @@ export default function ProfilePage() {
 
         {/* Logout Button */}
         <div className="mt-6">
-          <button className="w-full sm:w-auto px-6 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+          <button
+            className="w-full sm:w-auto px-6 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+            onClick={handleLogout}
+          >
             <LogOut className="w-5 h-5" />
             <span>Log Out</span>
           </button>

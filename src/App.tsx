@@ -6,12 +6,14 @@ import {
   Settings as SettingsIcon,
   HelpCircle, Package
 } from 'lucide-react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import FavoritesPage from './pages/FavoritesPage';
 import OrdersPage from './pages/OrdersPage';
 import ProfilePage from './pages/ProfilePage';
 import { CartProvider, useCart } from './contexts/CartContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import HelpCenter from './pages/HelpCenter';
 import Settings from './pages/Settings';
 import SearchResults from './components/SearchResults';
@@ -33,7 +35,11 @@ import { Restaurant } from './types';
 import PokemonList from './pages/PokemonList';
 import PokemonDetail from './pages/PokemonDetail';
 import HomePage from './pages/HomePage';
-
+import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
+import SplashPage from './pages/SplashPage';
+import WelcomePage from './pages/WelcomePage';
+import AddressesPage from './pages/AddressesPage';
 
 // Define TypeScript interfaces
 interface Category {
@@ -55,6 +61,28 @@ interface Filters {
   rating4Plus: boolean;
 }
 
+// Auth check wrapper component
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { currentUser, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Show loading indicator if auth state is still loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  // If user is not authenticated, redirect to sign in page
+  if (!currentUser) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 // First, create a new AppContent component that will contain all the content
 function AppContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,6 +97,10 @@ function AppContent() {
   });
   const menuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const { currentUser, userData } = useAuth();
+
+  // Don't show header and footer on auth pages
+  const hideHeaderFooter = ['/splash', '/welcome', '/signin', '/signup'].includes(location.pathname);
 
   // Add handler to close menu when clicking outside
   useEffect(() => {
@@ -136,69 +168,71 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-full"
-            >
-              <Menu className="w-6 h-6 text-gray-600" />
-            </button>
+      {/* Header - Don't show on auth pages */}
+      {!hideHeaderFooter && (
+        <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-200">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between h-16">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="md:hidden p-2 hover:bg-gray-100 rounded-full"
+              >
+                <Menu className="w-6 h-6 text-gray-600" />
+              </button>
 
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="bg-orange-500 p-2 rounded-full relative">
-                  <ChefHat className="w-6 h-6 text-white" />
+              {/* Logo */}
+              <div className="flex items-center gap-2">
+                <Link to="/" className="flex items-center gap-2">
+                  <div className="bg-orange-500 p-2 rounded-full relative">
+                    <ChefHat className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">
+                    FRY LYLE
+                    <span className="text-sm text-orange-500 block">Food Delivery</span>
+                  </span>
+                </Link>
+              </div>
+
+              {/* Search Bar */}
+              <div className="flex-1 max-w-2xl mx-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search for restaurants or dishes"
+                    className="w-full px-4 py-2 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setShowSearch(true)}
+                  />
+                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">
-                  FRY LYLE
-                  <span className="text-sm text-orange-500 block">Food Delivery</span>
-                </span>
-              </Link>
-            </div>
+              </div>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search for restaurants or dishes"
-                  className="w-full px-4 py-2 pl-10 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => setShowSearch(true)}
-                />
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center gap-4">
+                <Link to="/favorites" className="p-2 hover:bg-gray-100 rounded-full">
+                  <Heart className="w-6 h-6 text-gray-600" />
+                </Link>
+                <Link to="/cart" className="p-2 hover:bg-gray-100 rounded-full relative">
+                  <ShoppingCart className="w-6 h-6 text-gray-600" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
+                <Link to="/settings" className="p-2 hover:bg-gray-100 rounded-full">
+                  <SettingsIcon className="w-6 h-6 text-gray-600" />
+                </Link>
+                <Link to="/profile" className="p-2 hover:bg-gray-100 rounded-full">
+                  <UserCircle className="w-6 h-6 text-gray-600" />
+                </Link>
               </div>
             </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link to="/favorites" className="p-2 hover:bg-gray-100 rounded-full">
-                <Heart className="w-6 h-6 text-gray-600" />
-              </Link>
-              <Link to="/cart" className="p-2 hover:bg-gray-100 rounded-full relative">
-                <ShoppingCart className="w-6 h-6 text-gray-600" />
-                {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {cartItems.length}
-                  </span>
-                )}
-              </Link>
-              <Link to="/settings" className="p-2 hover:bg-gray-100 rounded-full">
-                <SettingsIcon className="w-6 h-6 text-gray-600" />
-              </Link>
-              <Link to="/profile" className="p-2 hover:bg-gray-100 rounded-full">
-                <UserCircle className="w-6 h-6 text-gray-600" />
-              </Link>
-            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Mobile Menu */}
       <div
@@ -235,10 +269,20 @@ function AppContent() {
             onClick={() => setIsMenuOpen(false)}
           >
             <div className="bg-gray-100 p-2 rounded-full">
-              <UserCircle className="w-8 h-8 text-gray-600" />
+              {userData?.profileImage ? (
+                <img
+                  src={userData.profileImage}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <UserCircle className="w-8 h-8 text-gray-600" />
+              )}
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">John Doe</h3>
+              <h3 className="font-medium text-gray-900">
+                {userData?.fullName || currentUser?.email?.split('@')[0] || 'Guest'}
+              </h3>
               <p className="text-sm text-gray-500">View your profile</p>
             </div>
           </Link>
@@ -342,15 +386,66 @@ function AppContent() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 pt-20 pb-24 md:pb-6">
+      <main className={`flex-1 ${!hideHeaderFooter ? 'container mx-auto px-4 pt-20 pb-24 md:pb-6' : ''}`}>
         <Routes>
-          <Route path="/" element={<HomePageComponent categories={categories} filteredRestaurants={filteredAndSortedRestaurants} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />} />
+          {/* Auth Flow */}
+          <Route path="/splash" element={<SplashPage />} />
+          <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+
+          {/* Redirect root to splash as the entry point */}
+          <Route path="/" element={<Navigate to="/splash" replace />} />
+
+          {/* Protected Routes */}
+          <Route path="/home" element={
+            <AuthRoute>
+              <HomePageComponent
+                categories={categories}
+                filteredRestaurants={filteredAndSortedRestaurants}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+              />
+            </AuthRoute>
+          } />
+
+          {/* Restaurant routes - accessible to both authenticated and guest users */}
           <Route path="/restaurant/:id" element={<RestaurantDetail />} />
-          <Route path="/cart" element={<CartScreen />} />
           <Route path="/restaurants" element={<AllRestaurants />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+
+          {/* Other protected routes */}
+          <Route path="/cart" element={
+            <AuthRoute>
+              <CartScreen />
+            </AuthRoute>
+          } />
+          <Route path="/favorites" element={
+            <AuthRoute>
+              <FavoritesPage />
+            </AuthRoute>
+          } />
+          <Route path="/orders" element={
+            <AuthRoute>
+              <OrdersPage />
+            </AuthRoute>
+          } />
+          <Route path="/profile" element={
+            <AuthRoute>
+              <ProfilePage />
+            </AuthRoute>
+          } />
+          <Route path="/payment" element={
+            <AuthRoute>
+              <PaymentScreen />
+            </AuthRoute>
+          } />
+          <Route path="/addresses" element={
+            <AuthRoute>
+              <AddressesPage />
+            </AuthRoute>
+          } />
+
+          {/* Information pages - accessible to all */}
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<AboutPage />} />
@@ -361,55 +456,56 @@ function AppContent() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/faq" element={<FAQPage />} />
-          <Route path="/payment" element={<PaymentScreen />} />
           <Route path="/pokemon" element={<PokemonList />} />
           <Route path="/pokemon/:id" element={<PokemonDetail />} />
         </Routes>
       </main>
 
-      {/* Footer - Mobile Navigation */}
-      <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-        <div className="flex justify-around px-2 py-2">
-          <Link
-            to="/"
-            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/' ? 'text-orange-500' : 'text-gray-600'}`}
-          >
-            <Home className={`w-6 h-6 ${location.pathname === '/' ? 'fill-orange-500' : ''}`} />
-            <span className="text-xs mt-1 font-medium">Home</span>
-            {location.pathname === '/' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
-          </Link>
+      {/* Footer - Mobile Navigation - Don't show on auth pages */}
+      {!hideHeaderFooter && (
+        <footer className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+          <div className="flex justify-around px-2 py-2">
+            <Link
+              to="/home"
+              className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/home' ? 'text-orange-500' : 'text-gray-600'}`}
+            >
+              <Home className={`w-6 h-6 ${location.pathname === '/home' ? 'fill-orange-500' : ''}`} />
+              <span className="text-xs mt-1 font-medium">Home</span>
+              {location.pathname === '/home' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
+            </Link>
 
-          <Link
-            to="/favorites"
-            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/favorites' ? 'text-orange-500' : 'text-gray-600'}`}
-          >
-            <Heart className={`w-6 h-6 ${location.pathname === '/favorites' ? 'fill-orange-500' : ''}`} />
-            <span className="text-xs mt-1 font-medium">Favorites</span>
-            {location.pathname === '/favorites' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
-          </Link>
+            <Link
+              to="/favorites"
+              className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/favorites' ? 'text-orange-500' : 'text-gray-600'}`}
+            >
+              <Heart className={`w-6 h-6 ${location.pathname === '/favorites' ? 'fill-orange-500' : ''}`} />
+              <span className="text-xs mt-1 font-medium">Favorites</span>
+              {location.pathname === '/favorites' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
+            </Link>
 
-          <Link
-            to="/orders"
-            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/orders' ? 'text-orange-500' : 'text-gray-600'}`}
-          >
-            <Package className={`w-6 h-6 ${location.pathname === '/orders' ? 'fill-orange-500' : ''}`} />
-            <span className="text-xs mt-1 font-medium">Orders</span>
-            {location.pathname === '/orders' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
-          </Link>
+            <Link
+              to="/orders"
+              className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/orders' ? 'text-orange-500' : 'text-gray-600'}`}
+            >
+              <Package className={`w-6 h-6 ${location.pathname === '/orders' ? 'fill-orange-500' : ''}`} />
+              <span className="text-xs mt-1 font-medium">Orders</span>
+              {location.pathname === '/orders' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
+            </Link>
 
-          <Link
-            to="/profile"
-            className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/profile' ? 'text-orange-500' : 'text-gray-600'}`}
-          >
-            <UserCircle className={`w-6 h-6 ${location.pathname === '/profile' ? 'fill-orange-500' : ''}`} />
-            <span className="text-xs mt-1 font-medium">Profile</span>
-            {location.pathname === '/profile' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
-          </Link>
-        </div>
-      </footer>
+            <Link
+              to="/profile"
+              className={`flex flex-col items-center justify-center w-1/4 py-2 ${location.pathname === '/profile' ? 'text-orange-500' : 'text-gray-600'}`}
+            >
+              <UserCircle className={`w-6 h-6 ${location.pathname === '/profile' ? 'fill-orange-500' : ''}`} />
+              <span className="text-xs mt-1 font-medium">Profile</span>
+              {location.pathname === '/profile' && <div className="h-1 w-6 bg-orange-500 rounded-full mt-1"></div>}
+            </Link>
+          </div>
+        </footer>
+      )}
 
-      {/* Desktop Footer */}
-      <Footer />
+      {/* Desktop Footer - Don't show on auth pages */}
+      {!hideHeaderFooter && <Footer />}
 
       {/* Search Results Overlay */}
       {showSearch && (
@@ -797,15 +893,27 @@ function AllRestaurants() {
   );
 }
 
-// Update the main App component to only handle the Router
+// Update the main App component to include AuthProvider
 export default function App() {
   return (
     <Router>
-      <CartProvider>
-        <NotificationProvider>
-          <AppContent />
-        </NotificationProvider>
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <NotificationProvider>
+            <AppContent />
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#fff',
+                  color: '#333',
+                }
+              }}
+            />
+          </NotificationProvider>
+        </CartProvider>
+      </AuthProvider>
     </Router>
   );
 }

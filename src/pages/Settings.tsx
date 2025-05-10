@@ -1,6 +1,9 @@
-import React from 'react';
-import { Bell, Shield, Moon, Globe, HelpCircle, Info, Mail, Phone, ChevronRight, User, CreditCard, Gift, Map } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, Shield, Moon, Globe, HelpCircle, Info, Mail, Phone, ChevronRight, User, CreditCard, Gift, Map, LogOut } from 'lucide-react';
 import PageLayout from '../components/PageLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 interface SettingSection {
     title: string;
@@ -15,6 +18,51 @@ interface SettingSection {
 }
 
 export default function Settings() {
+    const { currentUser, userData, logout } = useAuth();
+    const navigate = useNavigate();
+    const [darkMode, setDarkMode] = useState(false);
+    const [notifications, setNotifications] = useState(true);
+
+    // Get user initials for avatar
+    const getUserInitials = () => {
+        if (userData?.fullName) {
+            const names = userData.fullName.split(' ');
+            if (names.length >= 2) {
+                return `${names[0][0]}${names[1][0]}`.toUpperCase();
+            } else if (names.length === 1) {
+                return names[0][0].toUpperCase();
+            }
+        }
+
+        if (currentUser?.email) {
+            return currentUser.email[0].toUpperCase();
+        }
+
+        return 'U';
+    };
+
+    // Format the registration date if available
+    const formatDate = (timestamp: any) => {
+        if (!timestamp) return 'Recently';
+
+        try {
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return format(date, 'MMMM yyyy');
+        } catch (error) {
+            console.error('Error formatting date', error);
+            return 'Recently';
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/welcome');
+        } catch (error) {
+            console.error('Failed to log out', error);
+        }
+    };
+
     const accountSettingsSections: SettingSection[] = [
         {
             title: 'Account Settings',
@@ -23,22 +71,45 @@ export default function Settings() {
                     icon: <User className="w-5 h-5 text-blue-500" />,
                     label: 'Personal Information',
                     description: 'Edit your name, email and profile',
+                    value: userData?.fullName || currentUser?.email?.split('@')[0] || 'User',
+                    action: () => navigate('/profile')
+                },
+                {
+                    icon: <Mail className="w-5 h-5 text-indigo-500" />,
+                    label: 'Email Address',
+                    description: 'Your account email',
+                    value: currentUser?.email || 'Not set'
+                },
+                {
+                    icon: <Phone className="w-5 h-5 text-green-500" />,
+                    label: 'Phone Number',
+                    description: 'Manage your contact details',
+                    value: userData?.phone || 'Not set'
                 },
                 {
                     icon: <CreditCard className="w-5 h-5 text-indigo-500" />,
                     label: 'Payment Methods',
                     description: 'Add and manage payment methods',
+                    action: () => navigate('/payment')
                 },
                 {
                     icon: <Map className="w-5 h-5 text-pink-500" />,
                     label: 'Addresses',
                     description: 'Add and manage delivery addresses',
+                    value: userData?.addresses?.length ? `${userData.addresses.length} saved` : 'None saved',
+                    action: () => navigate('/addresses')
                 },
                 {
                     icon: <Gift className="w-5 h-5 text-yellow-500" />,
                     label: 'Rewards',
                     description: 'Check your rewards and offers',
-                    value: '32 points'
+                    value: '0 points'
+                },
+                {
+                    icon: <LogOut className="w-5 h-5 text-red-500" />,
+                    label: 'Log Out',
+                    description: 'Sign out of your account',
+                    action: handleLogout
                 }
             ]
         }
@@ -52,13 +123,15 @@ export default function Settings() {
                     icon: <Bell className="w-5 h-5 text-orange-500" />,
                     label: 'Notifications',
                     description: 'Manage your notification preferences',
-                    toggle: true
+                    toggle: true,
+                    action: () => setNotifications(!notifications)
                 },
                 {
                     icon: <Moon className="w-5 h-5 text-purple-500" />,
                     label: 'Dark Mode',
                     description: 'Toggle dark mode on/off',
-                    toggle: true
+                    toggle: true,
+                    action: () => setDarkMode(!darkMode)
                 },
                 {
                     icon: <Globe className="w-5 h-5 text-blue-500" />,
@@ -74,7 +147,8 @@ export default function Settings() {
                 {
                     icon: <Shield className="w-5 h-5 text-green-500" />,
                     label: 'Privacy Settings',
-                    description: 'Manage your privacy preferences'
+                    description: 'Manage your privacy preferences',
+                    action: () => navigate('/privacy')
                 },
                 {
                     icon: <Mail className="w-5 h-5 text-red-500" />,
@@ -89,7 +163,8 @@ export default function Settings() {
                 {
                     icon: <HelpCircle className="w-5 h-5 text-blue-500" />,
                     label: 'Help Center',
-                    description: 'Get help with your orders'
+                    description: 'Get help with your orders',
+                    action: () => navigate('/help')
                 },
                 {
                     icon: <Phone className="w-5 h-5 text-green-500" />,
@@ -99,7 +174,8 @@ export default function Settings() {
                 {
                     icon: <Info className="w-5 h-5 text-orange-500" />,
                     label: 'About',
-                    description: 'App version and information'
+                    description: 'App version and information',
+                    action: () => navigate('/about')
                 }
             ]
         }
@@ -118,6 +194,7 @@ export default function Settings() {
                     <div
                         key={item.label}
                         className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={item.action}
                     >
                         <div className="flex items-center gap-4">
                             <div className="p-2 bg-gray-50 rounded-lg">
@@ -136,17 +213,25 @@ export default function Settings() {
                             )}
                             {item.toggle ? (
                                 <button
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${Math.random() > 0.5 ? 'bg-orange-500' : 'bg-gray-200'
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${item.label === 'Dark Mode' ?
+                                            (darkMode ? 'bg-orange-500' : 'bg-gray-200') :
+                                            (notifications ? 'bg-orange-500' : 'bg-gray-200')
                                         }`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (item.action) item.action();
+                                    }}
                                 >
                                     <span
-                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${Math.random() > 0.5 ? 'translate-x-6' : 'translate-x-1'
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${item.label === 'Dark Mode' ?
+                                                (darkMode ? 'translate-x-6' : 'translate-x-1') :
+                                                (notifications ? 'translate-x-6' : 'translate-x-1')
                                             }`}
                                     />
                                 </button>
-                            ) : (
+                            ) : item.action ? (
                                 <ChevronRight className="w-5 h-5 text-gray-400" />
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 ))}
@@ -160,13 +245,23 @@ export default function Settings() {
                 {/* User Profile Summary */}
                 <div className="border-b border-gray-100 mb-6 p-6">
                     <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-2xl">
-                            JS
-                        </div>
+                        {userData?.profileImage ? (
+                            <img
+                                src={userData.profileImage}
+                                alt={userData.fullName || 'Profile'}
+                                className="w-20 h-20 rounded-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-2xl">
+                                {getUserInitials()}
+                            </div>
+                        )}
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">John Smith</h2>
-                            <p className="text-gray-600">john.smith@example.com</p>
-                            <p className="text-sm text-gray-500 mt-1">Member since Oct 2023</p>
+                            <h2 className="text-xl font-bold text-gray-900">
+                                {userData?.fullName || currentUser?.email?.split('@')[0] || 'User'}
+                            </h2>
+                            <p className="text-gray-600">{currentUser?.email}</p>
+                            <p className="text-sm text-gray-500 mt-1">Member since {formatDate(userData?.createdAt)}</p>
                         </div>
                     </div>
                 </div>
