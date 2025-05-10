@@ -20,8 +20,8 @@ export default function SignInPage() {
         setError('');
 
         try {
-            // Sign in with our auth context
-            await login(email, password);
+            // Sign in with our auth context - pass rememberMe flag
+            await login(email, password, rememberMe);
 
             // If login successful, redirect to home page
             navigate('/home');

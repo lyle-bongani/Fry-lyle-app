@@ -40,6 +40,7 @@ import SignUpPage from './pages/SignUpPage';
 import SplashPage from './pages/SplashPage';
 import WelcomePage from './pages/WelcomePage';
 import AddressesPage from './pages/AddressesPage';
+import { saveLastRoute } from './services/routeService';
 
 // Define TypeScript interfaces
 interface Category {
@@ -98,6 +99,13 @@ function AppContent() {
   const menuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const { currentUser, userData } = useAuth();
+
+  // Save the current route whenever location changes
+  useEffect(() => {
+    if (location.pathname) {
+      saveLastRoute(location.pathname);
+    }
+  }, [location.pathname]);
 
   // Don't show header and footer on auth pages
   const hideHeaderFooter = ['/splash', '/welcome', '/signin', '/signup'].includes(location.pathname);

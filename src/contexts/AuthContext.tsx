@@ -17,12 +17,13 @@ import {
 } from '../lib/firebase';
 import { User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { resetFirstVisit } from '../services/routeService';
 
 interface AuthContextType {
     currentUser: User | null;
     userData: any | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<User>;
+    login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
     logout: () => Promise<void>;
     register: (email: string, password: string, userData: any) => Promise<User>;
     updateUser: (data: any) => Promise<boolean>;
@@ -84,12 +85,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, []);
 
     // Authentication functions
-    const login = async (email: string, password: string) => {
-        return loginUser(email, password);
+    const login = async (email: string, password: string, rememberMe: boolean = false) => {
+        return loginUser(email, password, rememberMe);
     };
 
     const logout = async () => {
         setUserData(null);
+        resetFirstVisit();
         return logoutUser();
     };
 

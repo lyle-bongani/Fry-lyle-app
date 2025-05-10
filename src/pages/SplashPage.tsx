@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChefHat } from 'lucide-react';
+import { isFirstVisit, setFirstVisitComplete, getLastRoute } from '../services/routeService';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SplashPage() {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [fadeOut, setFadeOut] = useState(false);
     const [showLogo, setShowLogo] = useState(false);
     const [showCircle, setShowCircle] = useState(false);
@@ -31,9 +34,25 @@ export default function SplashPage() {
             setFadeOut(true);
         }, 3500);
 
-        // Navigate to welcome screen after animation (total of 4.5 seconds)
+        // Navigate after animation (total of 4.5 seconds)
         const navigationTimer = setTimeout(() => {
-            navigate('/welcome');
+            const firstVisit = isFirstVisit();
+
+            // If user is logged in and it's not the first visit of the session,
+            // go to the last visited page
+            if (currentUser && !firstVisit) {
+                const lastRoute = getLastRoute();
+                navigate(lastRoute);
+            } else if (currentUser) {
+                // User is logged in but first visit of the session
+                navigate('/home');
+            } else {
+                // Not logged in, go to welcome page
+                navigate('/welcome');
+            }
+
+            // Mark the first visit as complete
+            setFirstVisitComplete();
         }, 4500);
 
         return () => {
@@ -43,7 +62,7 @@ export default function SplashPage() {
             clearTimeout(fadeTimer);
             clearTimeout(navigationTimer);
         };
-    }, [navigate]);
+    }, [navigate, currentUser]);
 
     return (
         <div
@@ -84,4 +103,4 @@ export default function SplashPage() {
 .animate-wiggle {
   animation: wiggle 0.5s ease-in-out infinite;
 }
-*/ 
+*/
