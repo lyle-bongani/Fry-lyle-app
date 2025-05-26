@@ -11,7 +11,7 @@ export default function TermsPage() {
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
           <p className="text-gray-600 mb-4">
-            By accessing and using FryLyle's services, you agree to be bound by these Terms of Service.
+            By accessing and using Fly Foods' services, you agree to be bound by these Terms of Service.
           </p>
         </section>
         <section className="mb-8">

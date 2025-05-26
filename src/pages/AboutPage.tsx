@@ -3,10 +3,10 @@ import React from 'react';
 export default function AboutPage() {
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">About FryLyle</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">About Fly Foods</h1>
             <div className="prose prose-orange max-w-none">
                 <p className="text-gray-600 mb-6">
-                    FryLyle is your premier food delivery platform, connecting hungry customers with the best local restaurants.
+                    Fly Foods is your premier food delivery platform, connecting hungry customers with the best local restaurants.
                     Founded in 2024, we've been on a mission to transform the way people experience food delivery.
                 </p>
                 <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Our Mission</h2>

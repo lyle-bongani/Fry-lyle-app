@@ -27,7 +27,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Company Info */}
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">FryLyle</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Fly Foods</h3>
                         <p className="text-gray-600 mb-4">
                             Delivering happiness to your doorstep, one meal at a time.
                         </p>
@@ -108,8 +108,8 @@ export default function Footer() {
                         <div className="space-y-3">
                             <div className="flex items-center text-gray-600">
                                 <Mail className="w-5 h-5 mr-2" />
-                                <a href="mailto:support@frylyle.com" className="hover:text-orange-500">
-                                    support@frylyle.com
+                                <a href="mailto:support@flyfoods.com" className="hover:text-orange-500">
+                                    support@flyfoods.com
                                 </a>
                             </div>
                             <div className="flex items-center text-gray-600">
@@ -126,7 +126,7 @@ export default function Footer() {
                 <div className="border-t border-gray-200 mt-8 pt-8">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <p className="text-gray-600 text-sm">
-                            © {new Date().getFullYear()} FryLyle. All rights reserved.
+                            © {new Date().getFullYear()} Fly Foods. All rights reserved.
                         </p>
                         <div className="flex space-x-6 mt-4 md:mt-0">
                             <Link to="/privacy" className="text-gray-600 hover:text-orange-500 text-sm">

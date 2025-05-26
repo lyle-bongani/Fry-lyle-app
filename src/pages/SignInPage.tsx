@@ -52,7 +52,7 @@ export default function SignInPage() {
                         </div>
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
-                    <p className="text-gray-600">Sign in to your Fry Lyle account</p>
+                    <p className="text-gray-600">Sign in to your Fly Foods account</p>
                 </div>
 
                 {/* Sign In Form */}

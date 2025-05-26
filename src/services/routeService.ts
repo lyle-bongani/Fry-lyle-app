@@ -1,6 +1,6 @@
 // Keys for localStorage
-const LAST_ROUTE_KEY = 'frylyle_last_route';
-const FIRST_VISIT_KEY = 'frylyle_first_visit';
+const LAST_ROUTE_KEY = 'flyfoods_last_route';
+const FIRST_VISIT_KEY = 'flyfoods_first_visit';
 
 // Routes that should not be remembered
 const EXCLUDED_ROUTES = ['/splash', '/welcome', '/signin', '/signup'];

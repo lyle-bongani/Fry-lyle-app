@@ -41,25 +41,15 @@ import SplashPage from './pages/SplashPage';
 import WelcomePage from './pages/WelcomePage';
 import AddressesPage from './pages/AddressesPage';
 import { saveLastRoute } from './services/routeService';
-
-// Define TypeScript interfaces
-interface Category {
-  name: string;
-  icon: React.ReactElement;
-}
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
+import { categories, Category } from './data/categories';
+import CategoryCard from './components/CategoryCard';
 
 // Add the Filters type
 interface Filters {
   freeDelivery: boolean;
   promo: boolean;
   rating4Plus: boolean;
+  category: string | null;
 }
 
 // Auth check wrapper component
@@ -94,7 +84,8 @@ function AppContent() {
   const [filters, setFilters] = useState<Filters>({
     freeDelivery: false,
     promo: false,
-    rating4Plus: false
+    rating4Plus: false,
+    category: null
   });
   const menuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -130,17 +121,6 @@ function AppContent() {
     };
   }, [isMenuOpen]);
 
-  const categories: Category[] = [
-    { name: 'Burgers', icon: <Sandwich className="w-6 h-6" /> },
-    { name: 'Pizza', icon: <Pizza className="w-6 h-6" /> },
-    { name: 'Sushi', icon: <Utensils className="w-6 h-6" /> },
-    { name: 'Salads', icon: <Salad className="w-6 h-6" /> },
-    { name: 'Mexican', icon: <Utensils className="w-6 h-6" /> },
-    { name: 'Vietnamese', icon: <Utensils className="w-6 h-6" /> },
-    { name: 'Healthy', icon: <Salad className="w-6 h-6" /> },
-    { name: 'Desserts', icon: <Utensils className="w-6 h-6" /> },
-  ];
-
   const filteredAndSortedRestaurants = React.useMemo(() => {
     let result = [...restaurants];
 
@@ -153,6 +133,9 @@ function AppContent() {
     }
     if (filters.rating4Plus) {
       result = result.filter(r => r.rating >= 4.0);
+    }
+    if (filters.category) {
+      result = result.filter(r => r.cuisine.toLowerCase() === filters.category);
     }
 
     // Apply sorting
@@ -196,7 +179,7 @@ function AppContent() {
                     <ChefHat className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-xl font-bold text-gray-900">
-                    FRY LYLE
+                    FLY FOODS
                     <span className="text-sm text-orange-500 block">Food Delivery</span>
                   </span>
                 </Link>
@@ -256,7 +239,7 @@ function AppContent() {
                 <ChefHat className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <span className="font-bold text-white">FRY LYLE</span>
+                <span className="font-bold text-white">FLY FOODS</span>
                 <span className="text-xs text-white/80 block">Food Delivery</span>
               </div>
             </Link>
@@ -528,6 +511,23 @@ function AppContent() {
       )}
 
       {/* FilterBar should be inside the main content where needed */}
+      {/* Categories Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold mb-4 text-gray-900">Categories</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              isActive={filters.category === category.id}
+              onClick={() => setFilters(prev => ({
+                ...prev,
+                category: prev.category === category.id ? null : category.id
+              }))}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -561,7 +561,7 @@ function HomePageComponent({ categories, filteredRestaurants, searchTerm, setSea
         <div className="relative z-10 h-full flex items-center justify-center px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 text-white">
-              Welcome to Fry Lyle!
+              Welcome to Fly Foods!
             </h1>
             <p className="text-lg md:text-xl mb-6 md:mb-8 text-white/90 px-4">
               Get your favorite meals delivered to your door in minutes.
@@ -637,15 +637,20 @@ function HomePageComponent({ categories, filteredRestaurants, searchTerm, setSea
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4 text-gray-900">Categories</h2>
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {categories.map((category: Category) => (
-            <button
-              key={category.name}
-              className="flex flex-col items-center bg-white px-6 py-4 rounded-xl shadow-sm hover:shadow-md transition-shadow min-w-[120px]"
-            >
-              <div className="text-orange-500 mb-2">{category.icon}</div>
-              <span className="text-sm font-medium text-gray-700">{category.name}</span>
-            </button>
-          ))}
+          {categories.map((category) => {
+            const Icon = category.icon;
+            return (
+              <button
+                key={category.id}
+                className="flex flex-col items-center bg-white px-6 py-4 rounded-xl shadow-sm hover:shadow-md transition-shadow min-w-[120px]"
+              >
+                <div className="text-orange-500 mb-2">
+                  <Icon className="w-6 h-6" />
+                </div>
+                <span className="text-sm font-medium text-gray-700">{category.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

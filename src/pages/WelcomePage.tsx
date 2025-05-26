@@ -18,7 +18,7 @@ export default function WelcomePage() {
           <div className="inline-flex items-center justify-center bg-white p-3 rounded-full shadow-lg mb-6">
             <ChefHat className="w-10 h-10 text-orange-500" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3">FRY LYLE</h1>
+          <h1 className="text-3xl font-bold text-white mb-3">FLY FOODS</h1>
           <p className="text-white/90 text-lg">Food Delivery Service</p>
         </div>
 

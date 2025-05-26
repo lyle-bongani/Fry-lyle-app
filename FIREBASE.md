@@ -1,6 +1,6 @@
-# Firebase Setup for Fry Lyle App
+# Firebase Setup for Fly Foods App
 
-This document outlines the Firebase configuration and security rules for the Fry Lyle food delivery application.
+This document outlines the Firebase configuration and security rules for the Fly Foods food delivery application.
 
 ## Firebase Services Used
 

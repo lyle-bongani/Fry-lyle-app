@@ -31,7 +31,7 @@ function executeCommand(command, errorMessage) {
 
 // Main deployment function
 async function deploy() {
-    console.log(`\n${colors.bright}${colors.cyan}=== Starting Fry Lyle App Deployment ===${colors.reset}\n`);
+    console.log(`\n${colors.bright}${colors.cyan}=== Starting Fly Foods App Deployment ===${colors.reset}\n`);
 
     // 1. Build the React app
     console.log(`\n${colors.yellow}Step 1: Building React application...${colors.reset}`);

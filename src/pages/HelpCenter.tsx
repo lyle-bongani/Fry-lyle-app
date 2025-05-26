@@ -45,8 +45,8 @@ export default function HelpCenter() {
                     <Mail className="w-8 h-8 text-orange-500 mb-4" />
                     <h3 className="font-semibold text-gray-900 mb-2">Email Support</h3>
                     <p className="text-gray-600 mb-4">Get help via email</p>
-                    <a href="mailto:support@frylyle.com" className="text-orange-500 hover:text-orange-600">
-                        support@frylyle.com
+                    <a href="mailto:support@flyfoods.com" className="text-orange-500 hover:text-orange-600">
+                        support@flyfoods.com
                     </a>
                 </div>
             </div>
